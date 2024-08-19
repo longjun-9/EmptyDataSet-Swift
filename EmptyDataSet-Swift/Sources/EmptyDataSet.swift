@@ -14,6 +14,7 @@ private enum AssociateKeys {
   static var emptyDataSetDelegate: Void?
   static var emptyDataSetView: Void?
   static var configureEmptyDataSetView: Void?
+  static var scrollEnabledBackUp: Void?
 }
 
 class WeakObjectContainer: NSObject {
@@ -77,6 +78,15 @@ extension UIScrollView: UIGestureRecognizerDelegate {
       return !view.isHidden
     }
     return false
+  }
+
+  public var scrollEnabledBackUp: Bool? {
+    get {
+      return objc_getAssociatedObject(self, &AssociateKeys.scrollEnabledBackUp) as? Bool
+    }
+    set {
+      objc_setAssociatedObject(self, &AssociateKeys.scrollEnabledBackUp, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
   }
 
   // MARK: - privateProperty
@@ -329,6 +339,7 @@ extension UIScrollView: UIGestureRecognizerDelegate {
         view.isUserInteractionEnabled = isTouchAllowed
 
         // Configure scroll permission
+        scrollEnabledBackUp = isScrollEnabled
         isScrollEnabled = isScrollAllowed
 
         // Configure image view animation
@@ -360,10 +371,11 @@ extension UIScrollView: UIGestureRecognizerDelegate {
     if let view = emptyDataSetView {
       view.prepareForReuse()
       view.isHidden = true
-//            view.removeFromSuperview()
-//            emptyDataSetView = nil
     }
-    isScrollEnabled = true
+    if let scrollEnabledBackUp = scrollEnabledBackUp {
+      isScrollEnabled = scrollEnabledBackUp
+      self.scrollEnabledBackUp = nil
+    }
     didDisappear()
   }
 
